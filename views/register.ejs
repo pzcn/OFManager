@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= isFirstVisit ? 'Create Admin Account' : 'Register' %> - Claude</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <%- include('styles') %>
+    <script>
+        window.addEventListener('load', function() {
+            NProgress.done();
+            document.getElementById('overlay').style.display = 'none';
+        });
+    </script>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <%- include('logo') %>
+    <div class="main-content">
+        <div class="container">
+            <h1><%= isFirstVisit ? 'Create Admin Account' : 'Register for Claude' %></h1>
+            <form method="POST" action="/register">
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <% if (!isFirstVisit) { %>
+                    <input type="text" id="invite_code" name="invite_code" placeholder="Invite Code" required>
+                <% } %>
+                <div id="error_message">
+                    <% if (errorMessage) { %>
+                        <%= errorMessage %>
+                    <% } %>
+                </div>
+                <button type="submit"><%= isFirstVisit ? 'Create Admin' : 'Register' %></button>
+            </form>
+            <% if (!isFirstVisit) { %>
+                <div class="auth-link">
+                    Already have an account? <a href="/login">Login</a>
+                </div>
+            <% } %>
+            <div class="footer-text">© 2024 Claude. All rights reserved.</div>
+        </div>
+    </div>
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            NProgress.start();
+            document.getElementById('overlay').style.display = 'block';
+            this.submit();
+        });
+    </script>
+</body>
+</html>

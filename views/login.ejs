@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login to Claude</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <%- include('styles') %>
+    <script>
+        window.addEventListener('load', function() {
+            NProgress.done();
+            document.getElementById('overlay').style.display = 'none';
+        });
+    </script>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <%- include('logo') %>
+    <div class="main-content">
+        <div class="container">
+            <h1>Login to Claude</h1>
+            <form id="loginForm">
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <div id="error_message"></div>
+                <button type="submit">Login</button>
+            </form>
+            <div class="auth-link">
+                Don't have an account? <a href="/register">Register</a>
+            </div>
+            <div class="loader" id="loader"></div>
+            <div class="footer-text">
+                &copy; 2023 Claude. All rights reserved.
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            showLoader();
+            
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 不要在这里隐藏加载动画
+                    window.location.href = '/';
+                } else {
+                    hideLoader();
+                    document.getElementById('error_message').textContent = data.errorMessage || 'Login failed. Please try again.';
+                }
+            })
+            .catch(error => {
+                hideLoader();
+                console.error('Error:', error);
+                document.getElementById('error_message').textContent = 'An error occurred during login. Please try again.';
+            });
+        });
+
+        function showLoader() {
+            NProgress.start();
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function hideLoader() {
+            NProgress.done();
+            document.getElementById('overlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

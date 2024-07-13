@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Provider</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <%- include('styles') %>
+    <script>
+        window.addEventListener('load', function() {
+            NProgress.done();
+            document.getElementById('overlay').style.display = 'none';
+        });
+    </script>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <%- include('logo') %>
+    <div class="main-content">
+        <div class="container">
+            <h2>Select a Provider</h2>
+            <div class="provider-grid">
+                <% providers.forEach(function(provider) { %>
+                    <div class="provider-card" onclick="selectProvider('<%= provider.id %>')">
+                        <div class="provider-name"><%= provider.name %></div>
+                        <div class="provider-info"><%= provider.type %>, <%= provider.level %></div>
+                    </div>
+                <% }); %>
+            </div>
+            <div id="error_message"></div>
+            <div class="loader" id="loader"></div>
+            <div class="auth-link">
+                <a href="/logout">Logout</a>
+            </div>
+            <div class="footer-text">
+                &copy; 2023 Claude. All rights reserved.
+            </div>
+        </div>
+    </div>
+    <script>
+        function selectProvider(providerId) {
+            showLoader();
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `providerId=${encodeURIComponent(providerId)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 不要在这里隐藏加载动画
+                    window.location.href = data.redirectUrl;
+                } else {
+                    hideLoader();
+                    document.getElementById('error_message').textContent = data.errorMessage || 'An error occurred during provider selection.';
+                }
+            })
+            .catch(error => {
+                hideLoader();
+                console.error('Error:', error);
+                document.getElementById('error_message').textContent = 'An error occurred during provider selection. Please try again.';
+            });
+        }
+
+        function showLoader() {
+            NProgress.start();
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function hideLoader() {
+            NProgress.done();
+            document.getElementById('overlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

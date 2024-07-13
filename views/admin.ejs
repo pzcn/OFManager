@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Claude</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+            --border-color: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        h1, h2, h3 {
+            color: var(--secondary-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #fff;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        button, input[type="submit"] {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover, input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .tab {
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        .tab button.active {
+            background-color: #fff;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            animation: fadeEffect 1s;
+        }
+
+        @keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        .logout-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, 'System')" id="defaultOpen">System</button>
+            <button class="tablinks" onclick="openTab(event, 'Provider')">Provider</button>
+            <button class="tablinks" onclick="openTab(event, 'User')">User</button>
+        </div>
+
+        <div id="System" class="tabcontent">
+            <h2>System Management</h2>
+            <h3>Generate Invite Code</h3>
+            <form action="/admin/invite/generate" method="POST">
+                <input type="number" name="usageCount" placeholder="Usage Count (-1 for unlimited)" required>
+                <select name="level" required>
+                    <option value="normal">Normal</option>
+                    <option value="vip">VIP</option>
+                </select>
+                <button type="submit">Generate</button>
+            </form>
+            <table>
+                <tr>
+                    <th>Code</th>
+                    <th>Usage Count</th>
+                    <th>Level</th>
+                    <th>Action</th>
+                </tr>
+                <% inviteCodes.forEach(code => { %>
+                    <tr>
+                        <td><%= code.code %></td>
+                        <td><%= code.usage_count %></td>
+                        <td><%= code.level %></td>
+                        <td>
+                            <form action="/admin/invite/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this invite code?');">
+                                <input type="hidden" name="codeId" value="<%= code.id %>">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </table>
+
+            <h3>Proxy Addresses</h3>
+            <form action="/admin/proxy/update" method="POST">
+                <select name="type" required>
+                    <option value="oaifree">oaifree</option>
+                    <option value="fuclaude">fuclaude</option>
+                </select>
+                <input type="text" name="address" placeholder="Proxy Address" required>
+                <button type="submit">Update</button>
+            </form>
+            <table>
+                <tr>
+                    <th>Type</th>
+                    <th>Address</th>
+                </tr>
+                <% proxyAddresses.forEach(proxy => { %>
+                    <tr>
+                        <td><%= proxy.type %></td>
+                        <td><%= proxy.address %></td>
+                    </tr>
+                <% }) %>
+            </table>
+        </div>
+
+        <div id="Provider" class="tabcontent">
+            <h2>Provider Management</h2>
+            <form action="/admin/provider/add" method="POST">
+                <input type="text" name="name" placeholder="Provider Name" required>
+                <select name="type" required>
+                    <option value="oaifree">oaifree</option>
+                    <option value="fuclaude">fuclaude</option>
+                </select>
+                <select name="level" required>
+                    <option value="normal">Normal</option>
+                    <option value="vip">VIP</option>
+                </select>
+                <input type="text" name="key" placeholder="Provider Key" required>
+                <button type="submit">Add Provider</button>
+            </form>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>UUID</th>
+                    <th>Type</th>
+                    <th>Level</th>
+                    <th>Key</th>
+                    <th>Actions</th>
+                </tr>
+                <% channels.forEach(channel => { %>
+                    <tr>
+                        <td><%= channel.id %></td>
+                        <td><%= channel.name %></td>
+                        <td><%= channel.uuid %></td>
+                        <td><%= channel.type %></td>
+                        <td><%= channel.level %></td>
+                        <td><%= channel.key %></td>
+                        <td>
+                            <form action="/admin/provider/update" method="POST">
+                                <input type="hidden" name="providerId" value="<%= channel.id %>">
+                                <input type="text" name="name" value="<%= channel.name %>" required>
+                                <select name="type" required>
+                                    <option value="oaifree" <%= channel.type === 'oaifree' ? 'selected' : '' %>>oaifree</option>
+                                    <option value="fuclaude" <%= channel.type === 'fuclaude' ? 'selected' : '' %>>fuclaude</option>
+                                </select>
+                                <select name="level" required>
+                                    <option value="normal" <%= channel.level === 'normal' ? 'selected' : '' %>>Normal</option>
+                                    <option value="vip" <%= channel.level === 'vip' ? 'selected' : '' %>>VIP</option>
+                                </select>
+                                <input type="text" name="key" value="<%= channel.key %>" required>
+                                <button type="submit">Update</button>
+                            </form>
+                            <form action="/admin/provider/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this provider?');">
+                                <input type="hidden" name="providerId" value="<%= channel.id %>">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </table>
+        </div>
+
+        <div id="User" class="tabcontent">
+            <h2>User Management</h2>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>User Level</th>
+                    <th>Actions</th>
+                </tr>
+                <% users.forEach(user => { %>
+                    <tr>
+                        <td><%= user.id %></td>
+                        <td><%= user.username %></td>
+                        <td>
+                            <% if (user.user_level !== 4) { %>
+                                <form action="/admin/user/update" method="POST">
+                                    <input type="hidden" name="userId" value="<%= user.id %>">
+                                    <select name="userLevel" onchange="this.form.submit()">
+                                        <option value="-1" <%= user.user_level === -1 ? 'selected' : '' %>>Banned</option>
+                                        <option value="0" <%= user.user_level === 0 ? 'selected' : '' %>>Unverified</option>
+                                        <option value="1" <%= user.user_level === 1 ? 'selected' : '' %>>Normal</option>
+                                        <option value="2" <%= user.user_level === 2 ? 'selected' : '' %>>VIP</option>
+                                        <option value="3" <%= user.user_level === 3 ? 'selected' : '' %>>Admin</option>
+                                    </select>
+                                </form>
+                            <% } else { %>
+                                Initial User
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (user.user_level !== 4) { %>
+                                <form action="/admin/user/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                    <input type="hidden" name="userId" value="<%= user.id %>">
+                                    <button type="submit">Delete</button>
+                                </form>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </table>
+        </div>
+
+        <a href="/logout">Logout</a>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // Get the element with id="defaultOpen" and click on it
+        document.getElementById("defaultOpen").click();
+    </script>
+</body>
+</html>
